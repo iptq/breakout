@@ -1,6 +1,7 @@
 use glium::{Display, Frame, Texture2d};
 use nalgebra::{Matrix4, Orthographic3, Vector2, Vector3};
 
+use crate::entity::Entity;
 use crate::level::Level;
 use crate::player::Player;
 use crate::resources::Resources;
@@ -69,6 +70,7 @@ impl<'a> Game<'a> {
             GameState::Active => {
                 let level = self.get_current_level();
                 level.render(renderer);
+                self.player.render(renderer);
             }
             GameState::Menu => {}
             GameState::Win => {}

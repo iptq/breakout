@@ -6,6 +6,7 @@ use nalgebra::Vector2;
 use crate::entity::Entity;
 use crate::resources::Resources;
 use crate::sprite::SpriteRenderer;
+use crate::{GAME_HEIGHT, GAME_WIDTH};
 
 pub struct Level {
     map: HashMap<(usize, usize), Brick>,
@@ -22,16 +23,22 @@ impl Level {
     pub fn from_json(data: impl AsRef<str>) -> Self {
         let data = serde_json::from_str::<LevelData>(data.as_ref()).unwrap();
         let mut map = HashMap::new();
+
+        let unit_width = GAME_WIDTH as f32 / data.rows as f32;
+        let unit_height = GAME_HEIGHT as f32 / 2.0 / data.cols as f32;
+
         for (i, row) in data.map.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
-                let brick = Brick {
-                    position: [100.0 * i as f32, 100.0 * j as f32].into(),
-                    size: [100.0, 100.0].into(),
-                    destructible: *cell == 1,
-                    color: *cell,
-                    destroyed: false,
-                };
-                map.insert((i, j), brick);
+                if *cell != 0 {
+                    let brick = Brick {
+                        position: [unit_width * j as f32, unit_height * i as f32].into(),
+                        size: [unit_width, unit_height].into(),
+                        destructible: *cell == 1,
+                        color: *cell,
+                        destroyed: false,
+                    };
+                    map.insert((i, j), brick);
+                }
             }
         }
 

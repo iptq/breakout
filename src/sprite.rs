@@ -86,8 +86,8 @@ impl<'a, 'b> SpriteRenderer<'a, 'b> {
         let projection = glm::ortho::<f32>(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
 
         let mut matrix = Matrix4::<f32>::identity();
-        matrix = matrix.prepend_nonuniform_scaling(&[size[0], size[1], 1.0].into());
-        matrix = matrix.prepend_translation(&[position[0], position[1], 0.0].into());
+        matrix = matrix.append_nonuniform_scaling(&[size[0], size[1], 1.0].into());
+        matrix = matrix.append_translation(&[position[0], position[1], 0.0].into());
 
         let uniforms = uniform! {
             matrix: *matrix.as_ref(),
