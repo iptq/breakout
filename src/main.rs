@@ -1,9 +1,12 @@
 #[macro_use]
 extern crate glium;
 extern crate nalgebra_glm as glm;
+#[macro_use]
+extern crate serde_derive;
 
 mod entity;
 mod game;
+mod level;
 mod player;
 mod resources;
 mod sprite;
