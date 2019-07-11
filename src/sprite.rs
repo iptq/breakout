@@ -1,6 +1,6 @@
 use glium::index::{NoIndices, PrimitiveType};
 use glium::{Display, Frame, Program, Surface, Texture2d, VertexBuffer};
-use nalgebra::{Matrix4, Vector2};
+use nalgebra::{Matrix4, Vector2, Vector3};
 
 use crate::game::Game;
 use crate::resources::Resources;
@@ -30,9 +30,10 @@ impl<'a, 'b> SpriteRenderer<'a, 'b> {
         name: impl AsRef<str>,
         position: impl Into<Vector2<f32>>,
         size: impl Into<Vector2<f32>>,
+        color: impl Into<Vector3<f32>>,
     ) {
         let texture = self.resources.get_texture(name.as_ref()).unwrap();
-        self.render_sprite(texture, position, size)
+        self.render_sprite(texture, position, size, color)
     }
 
     pub fn render_sprite(
@@ -40,9 +41,11 @@ impl<'a, 'b> SpriteRenderer<'a, 'b> {
         texture: &Texture2d,
         position: impl Into<Vector2<f32>>,
         size: impl Into<Vector2<f32>>,
+        color: impl Into<Vector3<f32>>,
     ) {
         let position = position.into();
         let size = size.into();
+        let color = color.into();
 
         #[derive(Copy, Clone)]
         struct Vertex {
@@ -92,6 +95,7 @@ impl<'a, 'b> SpriteRenderer<'a, 'b> {
         let uniforms = uniform! {
             matrix: *matrix.as_ref(),
             projection: *projection.as_ref(),
+            tint: *color.as_ref(),
             tex: texture,
         };
         self.target

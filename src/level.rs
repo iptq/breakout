@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use glium::Texture2d;
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
 
 use crate::entity::Entity;
 use crate::resources::Resources;
@@ -30,11 +30,19 @@ impl Level {
         for (i, row) in data.map.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
                 if *cell != 0 {
+                    let color = match *cell {
+                        1 => [0.8, 0.8, 0.7].into(),
+                        2 => [0.2, 0.6, 1.0].into(),
+                        3 => [0.0, 0.7, 0.0].into(),
+                        4 => [0.8, 0.8, 0.4].into(),
+                        5 => [1.0, 0.5, 0.0].into(),
+                        _ => unreachable!(),
+                    };
                     let brick = Brick {
                         position: [unit_width * j as f32, unit_height * i as f32].into(),
                         size: [unit_width, unit_height].into(),
                         destructible: *cell == 1,
-                        color: *cell,
+                        color,
                         destroyed: false,
                     };
                     map.insert((i, j), brick);
@@ -56,7 +64,7 @@ struct Brick {
     position: Vector2<f32>,
     size: Vector2<f32>,
     destructible: bool,
-    color: u32,
+    color: Vector3<f32>,
     destroyed: bool,
 }
 
@@ -71,5 +79,9 @@ impl Entity for Brick {
 
     fn get_size(&self) -> Vector2<f32> {
         self.size
+    }
+
+    fn get_color(&self) -> Vector3<f32> {
+        self.color
     }
 }

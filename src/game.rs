@@ -110,7 +110,7 @@ impl<'a> Game<'a> {
     }
 
     pub fn render(&self, renderer: &mut SpriteRenderer) {
-        renderer.render_sprite_by_name("background", [0.0, 0.0], [1024.0, 768.0]);
+        renderer.render_sprite_by_name("background", [0.0, 0.0], [1024.0, 768.0], [1.0, 1.0, 1.0]);
         match &self.state {
             GameState::Active => {
                 let level = self.get_current_level();
