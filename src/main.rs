@@ -11,6 +11,9 @@ mod player;
 mod resources;
 mod sprite;
 
+use std::collections::HashMap;
+use std::time::Instant;
+
 use crate::game::Game;
 use crate::resources::Resources;
 
@@ -39,18 +42,26 @@ fn main() {
     let mut game = Game::new(&display);
 
     let mut closed = false;
+    let mut prev = Instant::now();
     while !closed {
+        let now = Instant::now();
+        let delta = now - prev;
+
+        events_loop.poll_events(|event| match event {
+            Event::WindowEvent {
+                event: WindowEvent::CloseRequested,
+                ..
+            } => closed = true,
+            _ => game.handle_event(event),
+        });
+
+        game.update(delta);
+
         let mut target = display.draw();
         let mut renderer = game.get_renderer(&mut target);
         game.render(&mut renderer);
         target.finish().unwrap();
 
-        events_loop.poll_events(|event| match event {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::CloseRequested => closed = true,
-                _ => (),
-            },
-            _ => (),
-        });
+        prev = now;
     }
 }

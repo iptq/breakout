@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use nalgebra::Vector2;
 
 use crate::entity::Entity;
@@ -22,6 +24,20 @@ impl Player {
             position,
             size,
             velocity: 500.0,
+        }
+    }
+
+    pub fn move_left(&mut self, delta: Duration) {
+        let velocity = self.velocity * delta.as_millis() as f32 / 1000.0;
+        if self.position[0] > 0.0 {
+            self.position[0] -= velocity;
+        }
+    }
+
+    pub fn move_right(&mut self, delta: Duration) {
+        let velocity = self.velocity * delta.as_millis() as f32 / 1000.0;
+        if self.position[0] < (GAME_WIDTH as f32 - self.size[0]) {
+            self.position[0] += velocity;
         }
     }
 }

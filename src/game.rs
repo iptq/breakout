@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+use std::time::Duration;
+
+use glium::glutin::{Event, VirtualKeyCode};
 use glium::{Display, Frame, Texture2d};
 use nalgebra::{Matrix4, Orthographic3, Vector2, Vector3};
 
@@ -23,6 +27,7 @@ pub struct Game<'a> {
     pub resources: Resources,
     pub display: &'a Display,
     pub levels: Vec<Level>,
+    keymap: HashMap<VirtualKeyCode, bool>,
     player: Player,
     state: GameState,
     level: usize,
@@ -49,6 +54,7 @@ impl<'a> Game<'a> {
             resources,
             display,
             levels,
+            keymap: HashMap::new(),
             player,
             state: GameState::Active,
             level: 0,
@@ -62,6 +68,45 @@ impl<'a> Game<'a> {
     pub fn get_renderer<'b>(&self, target: &'b mut Frame) -> SpriteRenderer<'b, '_> {
         let program = self.resources.get_shader("sprite").unwrap();
         SpriteRenderer::new(self, target)
+    }
+
+    pub fn handle_event(&mut self, event: Event) {
+        use glium::glutin::{ElementState, WindowEvent};
+        match event {
+            Event::WindowEvent {
+                event: WindowEvent::KeyboardInput { input, .. },
+                ..
+            } => {
+                if let Some(code) = input.virtual_keycode {
+                    self.keymap.insert(
+                        code,
+                        match &input.state {
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
+                        },
+                    );
+                }
+            }
+            _ => (),
+        }
+    }
+
+    fn is_key_pressed(&self, key: &VirtualKeyCode) -> bool {
+        self.keymap.get(key).cloned().unwrap_or_else(|| false)
+    }
+
+    pub fn update(&mut self, delta: Duration) {
+        match &self.state {
+            GameState::Active => {
+                if self.is_key_pressed(&VirtualKeyCode::Left) {
+                    self.player.move_left(delta);
+                } else if self.is_key_pressed(&VirtualKeyCode::Right) {
+                    self.player.move_right(delta);
+                }
+            }
+            GameState::Menu => {}
+            GameState::Win => {}
+        }
     }
 
     pub fn render(&self, renderer: &mut SpriteRenderer) {
