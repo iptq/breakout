@@ -84,6 +84,10 @@ impl<'a> Game<'a> {
         self.levels.iter().nth(self.level).unwrap()
     }
 
+    pub fn get_current_level_mut(&mut self) -> &mut Level {
+        self.levels.iter_mut().nth(self.level).unwrap()
+    }
+
     pub fn get_renderer<'b>(&self, target: &'b mut Frame) -> SpriteRenderer<'b, '_> {
         let program = self.resources.get_shader("sprite").unwrap();
         SpriteRenderer::new(self, target)
@@ -129,6 +133,11 @@ impl<'a> Game<'a> {
                     self.ball.unstick();
                 }
                 self.ball.update_position(delta);
+
+                let position = self.ball.get_position();
+                let radius = self.ball.get_radius();
+                let level = self.get_current_level_mut();
+                level.perform_collisions(position, radius);
             }
             GameState::Menu => {}
             GameState::Win => {}

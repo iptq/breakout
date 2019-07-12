@@ -3,6 +3,7 @@ use std::time::Duration;
 use nalgebra::Vector2;
 
 use crate::entity::Entity;
+use crate::level::Brick;
 use crate::{GAME_HEIGHT, GAME_WIDTH};
 
 pub struct Ball {
@@ -22,6 +23,10 @@ impl Ball {
             radius,
             stuck: true,
         }
+    }
+
+    pub fn get_radius(&self) -> f32 {
+        self.radius
     }
 
     pub fn unstick(&mut self) {

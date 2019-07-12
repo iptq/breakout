@@ -3,13 +3,14 @@ use std::collections::HashMap;
 use glium::Texture2d;
 use nalgebra::{Vector2, Vector3};
 
+use crate::ball::Ball;
 use crate::entity::Entity;
 use crate::resources::Resources;
 use crate::sprite::SpriteRenderer;
 use crate::{GAME_HEIGHT, GAME_WIDTH};
 
 pub struct Level {
-    map: HashMap<(usize, usize), Brick>,
+    pub map: HashMap<(usize, usize), Brick>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -55,17 +56,57 @@ impl Level {
 
     pub fn render(&self, renderer: &mut SpriteRenderer) {
         for ((x, y), brick) in self.map.iter() {
-            brick.render(renderer);
+            if !brick.is_destroyed() {
+                brick.render(renderer);
+            }
+        }
+    }
+
+    pub fn perform_collisions(&mut self, position: Vector2<f32>, radius: f32) {
+        for brick in self.map.values_mut() {
+            if brick.is_destructible()
+                && !brick.is_destroyed()
+                && brick.collides_with(position, radius)
+            {
+                brick.destroy();
+            }
         }
     }
 }
 
-struct Brick {
+pub struct Brick {
     position: Vector2<f32>,
     size: Vector2<f32>,
     destructible: bool,
     color: Vector3<f32>,
     destroyed: bool,
+}
+
+impl Brick {
+    pub fn destroy(&mut self) {
+        self.destroyed = true;
+    }
+
+    pub fn is_destroyed(&self) -> bool {
+        self.destroyed
+    }
+
+    pub fn is_destructible(&self) -> bool {
+        self.destructible
+    }
+
+    pub fn collides_with(&self, position: Vector2<f32>, radius: f32) -> bool {
+        let center = position + radius * Vector2::identity();
+        let half_extents = self.get_size() / 2.0;
+        let brick_center = self.get_position() + half_extents;
+
+        let difference = center - brick_center;
+        let clamped = glm::clamp_vec(&difference, &-half_extents, &half_extents);
+        let closest = brick_center + clamped;
+        let difference = closest - center;
+
+        glm::length(&difference) < radius
+    }
 }
 
 impl Entity for Brick {
