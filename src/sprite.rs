@@ -1,3 +1,4 @@
+use glium::draw_parameters::{Blend, DrawParameters};
 use glium::index::{NoIndices, PrimitiveType};
 use glium::{Display, Frame, Program, Surface, Texture2d, VertexBuffer};
 use nalgebra::{Matrix4, Vector2, Vector3};
@@ -104,7 +105,10 @@ impl<'a, 'b> SpriteRenderer<'a, 'b> {
                 &indices,
                 &self.program,
                 &uniforms,
-                &Default::default(),
+                &DrawParameters {
+                    blend: Blend::alpha_blending(),
+                    ..Default::default()
+                },
             )
             .unwrap();
     }

@@ -4,9 +4,11 @@ extern crate nalgebra_glm as glm;
 #[macro_use]
 extern crate serde_derive;
 
+mod ball;
 mod entity;
 mod game;
 mod level;
+mod math;
 mod player;
 mod resources;
 mod sprite;

@@ -5,6 +5,7 @@ use glium::glutin::{Event, VirtualKeyCode};
 use glium::{Display, Frame, Texture2d};
 use nalgebra::{Matrix4, Orthographic3, Vector2, Vector3};
 
+use crate::ball::Ball;
 use crate::entity::Entity;
 use crate::level::Level;
 use crate::player::Player;
@@ -15,6 +16,7 @@ const BACKGROUND_IMAGE: &[u8] = include_bytes!("../textures/background.jpg");
 const PADDLE_IMAGE: &[u8] = include_bytes!("../textures/paddle.png");
 const BLOCK_IMAGE: &[u8] = include_bytes!("../textures/block.png");
 const BLOCK_SOLID_IMAGE: &[u8] = include_bytes!("../textures/block_solid.png");
+const BALL_IMAGE: &[u8] = include_bytes!("../textures/ball.png");
 const SPRITE_VERT: &str = include_str!("../shaders/sprite.vs");
 const SPRITE_FRAG: &str = include_str!("../shaders/sprite.fs");
 
@@ -28,18 +30,31 @@ pub struct Game<'a> {
     pub display: &'a Display,
     pub levels: Vec<Level>,
     keymap: HashMap<VirtualKeyCode, bool>,
-    player: Player,
     state: GameState,
     level: usize,
+
+    player: Player,
+    ball: Ball,
 }
 
 impl<'a> Game<'a> {
     pub fn new(display: &'a Display) -> Self {
         let mut resources = Resources::default();
-        resources.load_image_from_memory(display, "background", &BACKGROUND_IMAGE, false);
-        resources.load_image_from_memory(display, "paddle", &PADDLE_IMAGE, true);
-        resources.load_image_from_memory(display, "block", &BLOCK_IMAGE, false);
-        resources.load_image_from_memory(display, "block_solid", &BLOCK_SOLID_IMAGE, false);
+        resources
+            .load_image_from_memory(display, "background", &BACKGROUND_IMAGE, false)
+            .unwrap();
+        resources
+            .load_image_from_memory(display, "paddle", &PADDLE_IMAGE, true)
+            .unwrap();
+        resources
+            .load_image_from_memory(display, "ball", &BALL_IMAGE, true)
+            .unwrap();
+        resources
+            .load_image_from_memory(display, "block", &BLOCK_IMAGE, false)
+            .unwrap();
+        resources
+            .load_image_from_memory(display, "block_solid", &BLOCK_SOLID_IMAGE, false)
+            .unwrap();
         resources.load_shader(display, "sprite", &SPRITE_VERT, &SPRITE_FRAG);
 
         let levels = vec![
@@ -48,16 +63,20 @@ impl<'a> Game<'a> {
             Level::from_json(&LEVEL_3),
             Level::from_json(&LEVEL_4),
         ];
+
         let player = Player::new();
+        let ball = Ball::new(player.get_position());
 
         Game {
             resources,
             display,
             levels,
             keymap: HashMap::new(),
-            player,
             state: GameState::Active,
             level: 0,
+
+            player,
+            ball,
         }
     }
 
@@ -98,11 +117,18 @@ impl<'a> Game<'a> {
     pub fn update(&mut self, delta: Duration) {
         match &self.state {
             GameState::Active => {
+                let mut move_by = 0.0;
                 if self.is_key_pressed(&VirtualKeyCode::Left) {
-                    self.player.move_left(delta);
+                    move_by = self.player.move_left(delta);
                 } else if self.is_key_pressed(&VirtualKeyCode::Right) {
-                    self.player.move_right(delta);
+                    move_by = self.player.move_right(delta);
                 }
+                self.ball.move_by(move_by);
+
+                if self.is_key_pressed(&VirtualKeyCode::Space) {
+                    self.ball.unstick();
+                }
+                self.ball.update_position(delta);
             }
             GameState::Menu => {}
             GameState::Win => {}
@@ -116,6 +142,7 @@ impl<'a> Game<'a> {
                 let level = self.get_current_level();
                 level.render(renderer);
                 self.player.render(renderer);
+                self.ball.render(renderer);
             }
             GameState::Menu => {}
             GameState::Win => {}

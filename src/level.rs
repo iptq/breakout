@@ -41,7 +41,7 @@ impl Level {
                     let brick = Brick {
                         position: [unit_width * j as f32, unit_height * i as f32].into(),
                         size: [unit_width, unit_height].into(),
-                        destructible: *cell == 1,
+                        destructible: *cell != 1,
                         color,
                         destroyed: false,
                     };
@@ -70,7 +70,11 @@ struct Brick {
 
 impl Entity for Brick {
     fn get_sprite(&self) -> &str {
-        "block"
+        if self.destructible {
+            "block"
+        } else {
+            "block_solid"
+        }
     }
 
     fn get_position(&self) -> Vector2<f32> {

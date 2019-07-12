@@ -27,18 +27,22 @@ impl Player {
         }
     }
 
-    pub fn move_left(&mut self, delta: Duration) {
+    pub fn move_left(&mut self, delta: Duration) -> f32 {
         let velocity = self.velocity * delta.as_millis() as f32 / 1000.0;
         if self.position[0] > 0.0 {
             self.position[0] -= velocity;
+            return -velocity;
         }
+        0.0
     }
 
-    pub fn move_right(&mut self, delta: Duration) {
+    pub fn move_right(&mut self, delta: Duration) -> f32 {
         let velocity = self.velocity * delta.as_millis() as f32 / 1000.0;
         if self.position[0] < (GAME_WIDTH as f32 - self.size[0]) {
             self.position[0] += velocity;
+            return velocity;
         }
+        0.0
     }
 }
 
