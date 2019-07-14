@@ -5,6 +5,7 @@ use nalgebra::{Vector2, Vector3};
 
 use crate::ball::Ball;
 use crate::entity::Entity;
+use crate::math::calculate_vector_direction;
 use crate::resources::Resources;
 use crate::sprite::SpriteRenderer;
 use crate::{GAME_HEIGHT, GAME_WIDTH};
@@ -62,13 +63,13 @@ impl Level {
         }
     }
 
-    pub fn perform_collisions(&mut self, position: Vector2<f32>, radius: f32) {
+    pub fn perform_collisions(&mut self, position: Vector2<f32>, radius: f32) -> CollisionResult {
         for brick in self.map.values_mut() {
-            if brick.is_destructible()
-                && !brick.is_destroyed()
-                && brick.collides_with(position, radius)
-            {
-                brick.destroy();
+            if brick.is_destructible() && !brick.is_destroyed() {
+                if let CollisionResult::Hit(direction, asdf) = brick.collides_with(position, radius)
+                {
+                    brick.destroy();
+                }
             }
         }
     }
@@ -80,6 +81,19 @@ pub struct Brick {
     destructible: bool,
     color: Vector3<f32>,
     destroyed: bool,
+}
+
+#[derive(Copy, Clone)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+pub enum CollisionResult {
+    Hit(Direction, Vector2<f32>),
+    Miss,
 }
 
 impl Brick {
@@ -95,7 +109,7 @@ impl Brick {
         self.destructible
     }
 
-    pub fn collides_with(&self, position: Vector2<f32>, radius: f32) -> bool {
+    pub fn collides_with(&self, position: Vector2<f32>, radius: f32) -> CollisionResult {
         let center = position + radius * Vector2::identity();
         let half_extents = self.get_size() / 2.0;
         let brick_center = self.get_position() + half_extents;
@@ -105,7 +119,12 @@ impl Brick {
         let closest = brick_center + clamped;
         let difference = closest - center;
 
-        glm::length(&difference) < radius
+        if glm::length(&difference) < radius {
+            let direction = calculate_vector_direction(&difference);
+            CollisionResult::Hit(direction, difference)
+        } else {
+            CollisionResult::Miss
+        }
     }
 }
 
